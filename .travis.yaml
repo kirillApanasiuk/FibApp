@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t kirillprotein/FibApp -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run kirillprotein/FibApp npm test -- --coverage
+after_success:
+  - docker build -t kirillprotein/multi-client ./client
+  - docker build -t kirillprotein/multi-nginx ./nginx
+  - docker build -t kirillprotein/multi-server ./server
+  - docker build -t kirillprotein/multi-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u $"DOCKER_ID" --password-stdin
+  - docker push kirillprotein/multi-client
+  - docker push kirillprotein/multi-nginx
+  - docker push kirillprotein/multi-server
+  - docker push kirillprotein/multi-worker
